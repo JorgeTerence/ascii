@@ -1,32 +1,53 @@
 use image::ImageReader;
+use std::io::Write;
 
 const TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 
 fn main() {
-    let (luminance, width, height) = read_image("think.jpg");
-    let (scale_x, scale_y) = (8, 4);
+    let (luminance, width, height) = read_image("nois.jpg");
+    let (scale_x, scale_y) = (4, 8);
 
-    let mut buff: Vec<char> = vec![];
+    let mut buf: Vec<u8> = vec![];
 
-    for y in 0..(height - (height % scale_y)) {
-        for x in 0..(width - (width % scale_x)) {
-            let ascii_char =
-                match TEXTURE.get(sample(&luminance, y, x, width, scale_y, scale_x)) {
-                    None => panic!("Invalid luminance index"),
-                    Some(v) => v.to_owned(),
-                };
+    for y in (0..(height - (height % scale_y))).step_by(scale_y as usize) {
+        for x in (0..(width - (width % scale_x))).step_by(scale_x as usize) {
+            let avg = sample(&luminance, y, x, width, scale_y, scale_x);
+            let index = (avg as f32 / 64.0) as usize;
 
-            buff.push(ascii_char as char);
+            let ascii_char = match TEXTURE.get(index) {
+                None => panic!("Invalid luminance index: [{}, {}] {}%", x, y, avg),
+                Some(v) => v.to_owned(),
+            };
+
+            buf.push(ascii_char);
         }
+        buf.push(10);
     }
+
+    let mut file = std::fs::File::create("ascii_art.txt").unwrap();
+    match file.write_all(&buf) {
+        Err(err) => panic!("Error writing file: {}", err),
+        Ok(_) => println!("File written successfully!"),
+    };
 }
 
-fn sample(data: &Vec<u8>, y: u32, x: u32, w: u32, scale_y: u32, scale_x: u32) -> usize {
-    let start = y * w + x;
-    let end = (start + scale_y * w) as usize;
-    let delta = (w - scale_x) as usize;
+fn sample(
+    data: &Vec<u8>,
+    y: u32,
+    x: u32,
+    width: u32,
+    scale_y: u32,
+    scale_x: u32,
+) -> u32 {
+    let mut sum = 0;
 
-    return data[(start as usize)..end].iter().step_by(delta).sum::<u8>() as usize;
+    for i in y..y + scale_y {
+        for j in x..x + scale_x {
+            sum += data[(i * width + j) as usize] as u32;
+        }
+    }
+
+    sum / (scale_x * scale_y)
 }
 
 fn read_image(file_path: &str) -> (Vec<u8>, u32, u32) {
@@ -35,9 +56,7 @@ fn read_image(file_path: &str) -> (Vec<u8>, u32, u32) {
         Ok(file) => {
             match file.decode() {
                 Err(err) => panic!("Error decoding image: {}", err),
-                Ok(img) => {
-                    return (img.to_luma8().to_vec(), img.width(), img.height());
-                }
+                Ok(img) => return (img.to_luma8().to_vec(), img.width(), img.height()),
             };
         }
     }
