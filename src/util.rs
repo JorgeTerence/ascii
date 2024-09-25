@@ -9,7 +9,7 @@ impl OutputType {
     pub fn to_str(&self) -> &str {
         match self {
             OutputType::Text => "txt",
-            OutputType::Image => "img",
+            OutputType::Image => "png",
         }
     }
 }

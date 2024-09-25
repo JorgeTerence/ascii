@@ -3,11 +3,12 @@ mod util;
 
 use image::Luma;
 use img_proc::{read_image, sample};
-use std::{io::Write, path::PathBuf};
+use std::{env::current_dir, io::Write, path::PathBuf};
 use util::{parse_args, OutputType};
 
-const TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
+const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const ATLAS: &[u8] = include_bytes!("../atlas.png");
+const TILE_SIZE: u32 = 8;
 
 fn main() {
     let (output_type, file_path) = parse_args();
@@ -16,24 +17,26 @@ fn main() {
     let (scale_x, scale_y) = (4, 8);
 
     let mut buf: Vec<u8> = vec![];
+    let mut buf_luma: Vec<f32> = vec![];
 
     for y in (0..(height - (height % scale_y))).step_by(scale_y as usize) {
         for x in (0..(width - (width % scale_x))).step_by(scale_x as usize) {
             let avg = sample(&luminance, y, x, width, scale_y, scale_x);
 
-            let index = (avg as f32 / 32.0) as usize;
+            let index = avg as f32 / 32.0;
 
-            let ascii_char = match TEXTURE.get(index) {
+            let ascii_char = match TXT_TEXTURE.get(index as usize) {
                 None => panic!("Invalid luminance index: [{}, {}] {}%", x, y, avg),
                 Some(v) => v.to_owned(),
             };
 
             buf.push(ascii_char);
+            buf_luma.push(index);
         }
         buf.push(10);
     }
 
-    let pwd = PathBuf::from(std::env::current_dir().unwrap());
+    let pwd = PathBuf::from(current_dir().unwrap());
     let output_path = format!(
         "{}.{}",
         pwd.join(file_path.file_stem().unwrap()).to_str().unwrap(),
@@ -49,9 +52,14 @@ fn main() {
                 Ok(_) => println!("File written successfully!"),
             };
         }
+
         OutputType::Image => {
-            let canvas: image::ImageBuffer<Luma<u8>, Vec<_>> = image::ImageBuffer::new(1080, 480);
-        },
+            let mut canvas = image::ImageBuffer::new(width, height);
+            canvas.enumerate_pixels_mut().for_each(|(x, y, pixel)| {
+                let index = (y * width + x) as usize;
+                *pixel = Luma([ATLAS[index]]); // TODO: do some fancy math
+            });
+        }
     };
 }
 
