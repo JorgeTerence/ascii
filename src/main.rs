@@ -1,7 +1,13 @@
-use image::ImageReader;
+mod img_proc;
+mod util;
+
+use image::Luma;
+use img_proc::{read_image, sample};
 use std::{io::Write, path::PathBuf};
+use util::{parse_args, OutputType};
 
 const TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
+const ATLAS: &[u8] = include_bytes!("../atlas.png");
 
 fn main() {
     let (output_type, file_path) = parse_args();
@@ -31,68 +37,22 @@ fn main() {
     let output_path = format!(
         "{}.{}",
         pwd.join(file_path.file_stem().unwrap()).to_str().unwrap(),
-        output_type
+        output_type.to_str()
     );
 
     let mut file = std::fs::File::create(output_path).unwrap();
 
-    match file.write_all(&buf) {
-        Err(err) => panic!("Error writing file: {}", err),
-        Ok(_) => println!("File written successfully!"),
-    };
-}
-
-fn sample(data: &Vec<u8>, y: u32, x: u32, width: u32, scale_y: u32, scale_x: u32) -> u32 {
-    let mut sum = 0;
-
-    for i in y..y + scale_y {
-        for j in x..x + scale_x {
-            sum += data[(i * width + j) as usize] as u32;
-        }
-    }
-
-    sum / (scale_x * scale_y)
-}
-
-fn read_image(file_path: &str) -> (Vec<u8>, u32, u32) {
-    match ImageReader::open(file_path) {
-        Err(err) => panic!("Error reading file: {}", err),
-        Ok(file) => {
-            match file.decode() {
-                Err(err) => panic!("Error decoding image: {}", err),
-                Ok(img) => return (img.to_luma8().to_vec(), img.width(), img.height()),
+    match output_type {
+        OutputType::Text => {
+            match file.write_all(&buf) {
+                Err(err) => panic!("Error writing file: {}", err),
+                Ok(_) => println!("File written successfully!"),
             };
         }
-    }
-}
-
-fn parse_args() -> (String, PathBuf) {
-    let args = std::env::args().collect::<Vec<String>>();
-
-    if args.len() < 2 {
-        panic!("Media path not provided: ascii <image_path>  --output_type");
-    }
-
-    let output_type: &str;
-    let file_path: String;
-
-    if args.len() < 3 {
-        output_type = "txt";
-        file_path = args[1].to_owned();
-    } else {
-        output_type = match &args[1][2..] as &str {
-            "txt" => "txt",
-            "img" => "png",
-            _ => panic!(
-                "Invalid output type: {}. Available types are 'txt' and 'img'",
-                &args[1]
-            ),
-        };
-
-        file_path = args[2].to_owned();
+        OutputType::Image => {
+            let canvas: image::ImageBuffer<Luma<u8>, Vec<_>> = image::ImageBuffer::new(1080, 480);
+        },
     };
-
-    (output_type.to_string(), PathBuf::from(file_path))
 }
 
 // make it interchangable between text buffer, image rect and video frame
