@@ -3,6 +3,7 @@ use std::path::PathBuf;
 pub enum OutputType {
     Text,
     Image,
+    Video,
 }
 
 impl OutputType {
@@ -10,6 +11,7 @@ impl OutputType {
         match self {
             OutputType::Text => "txt",
             OutputType::Image => "png",
+            OutputType::Video => "mp4",
         }
     }
 }

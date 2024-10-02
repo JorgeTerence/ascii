@@ -3,7 +3,7 @@ mod util;
 
 use image::{ImageBuffer, ImageReader, Rgb};
 use img_proc::{read_image, sample};
-use std::{env::current_dir, io::Write, path::PathBuf};
+use std::{env::current_dir, fs, io::Write, path::PathBuf};
 use util::{parse_args, OutputType};
 
 const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
@@ -11,8 +11,6 @@ const TILE_SIZE: u32 = 8;
 
 fn main() {
     let (output_type, file_path) = parse_args();
-
-    let (luminance, width, height) = read_image(file_path.to_str().unwrap());
 
     let pwd = PathBuf::from(current_dir().unwrap());
     let output_path = format!(
@@ -23,6 +21,8 @@ fn main() {
 
     match output_type {
         OutputType::Text => {
+            let (luminance, width, height) = read_image(file_path.to_str().unwrap());
+
             let (scale_x, scale_y) = (4, 8);
             let mut buf: Vec<u8> = vec![];
 
@@ -52,6 +52,8 @@ fn main() {
         }
 
         OutputType::Image => {
+            let (luminance, width, height) = read_image(file_path.to_str().unwrap());
+
             let atlas = ImageReader::open("atlas.png")
                 .unwrap()
                 .decode()
@@ -79,6 +81,11 @@ fn main() {
             canvas
                 .save_with_format(output_path, image::ImageFormat::Png)
                 .unwrap();
+        }
+
+        OutputType::Video => {
+            let raw_data = fs::read(file_path).unwrap();
+            dbg!(raw_data);
         }
     };
 }
