@@ -1,3 +1,4 @@
+use core::fmt;
 use std::path::PathBuf;
 
 pub enum OutputType {
@@ -6,12 +7,12 @@ pub enum OutputType {
     Video,
 }
 
-impl OutputType {
-    pub fn to_str(&self) -> &str {
+impl fmt::Display for OutputType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OutputType::Text => "txt",
-            OutputType::Image => "png",
-            OutputType::Video => "mp4",
+            OutputType::Text => write!(f, "txt"),
+            OutputType::Image => write!(f, "png"),
+            OutputType::Video => write!(f, "mp4"),
         }
     }
 }
@@ -33,8 +34,9 @@ pub fn parse_args() -> (OutputType, PathBuf) {
         output_type = match &args[1][2..] as &str {
             "txt" => OutputType::Text,
             "img" => OutputType::Image,
+            "video" => OutputType::Video,
             _ => panic!(
-                "Invalid output type: {}. Available types are 'txt' and 'img'",
+                "Invalid output type: {}. Available types are 'txt', 'img' and 'video'",
                 &args[1]
             ),
         };
