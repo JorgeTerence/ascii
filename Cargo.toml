@@ -5,4 +5,7 @@ edition = "2021"
 
 [dependencies]
 image = "0.25.2"
-mp4 = "0.14.0"
+video-rs = { version = "0.9", features = ["ndarray"] }
+
+[target.x86_64-pc-windows-gnu]
+linker = "C:\\msys64\\mingw64\\bin\\gcc.exe"

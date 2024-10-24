@@ -6,10 +6,13 @@ use img_proc::{read_image, sample};
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
 use util::{parse_args, OutputType};
 
+use video_rs::decode::Decoder;
+use video_rs::Url;
+
 const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
 
-fn main() -> mp4::Result<()> {
+fn main() {
     let (output_type, file_path) = parse_args();
 
     let pwd = PathBuf::from(env::current_dir().expect("Failed to locate $PWD"));
@@ -88,21 +91,20 @@ fn main() -> mp4::Result<()> {
         }
 
         OutputType::Video => {
-            let file = File::open(file_path).expect("Failed to read input video");
-            let video = mp4::read_mp4(file).expect("Failed to decode video");
+            video_rs::init().unwrap();
 
-            for (code, track) in video.tracks() {
-                match track.box_type() {
-                    Ok(t) => {
-                        if t.to_string() == "mp4a" {
-                            println!("{} -> {}", code, t)
-                        }
-                    }
-                    Err(_) => panic!("Failed to read box type"),
+            let mut decoder = Decoder::new(file_path).expect("Failed decode input video");
+
+            for frame in decoder.decode_iter() {
+                if let Ok((t, frame)) = frame {
+                    let rgb = frame
+                        .slice(ndarray::s![0, 0, ..])
+                        .to_slice()
+                        .expect(format!("Failed to parse RGB data at frame {}", t).as_str());
+                } else {
+                    break;
                 }
             }
         }
     };
-
-    Ok(())
 }
