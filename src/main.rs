@@ -1,10 +1,11 @@
 mod img_proc;
 mod util;
 
+use clap::Parser;
 use image::{ImageBuffer, ImageReader, Rgb};
 use img_proc::{read_image, sample};
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
-use util::{parse_args, OutputType};
+use util::{parse_args, Args, OutputType};
 
 use video_rs::decode::Decoder;
 use video_rs::Url;
@@ -13,6 +14,8 @@ const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
 
 fn main() {
+    let args = Args::parse();
+    println!("{}", args);
     let (output_type, file_path) = parse_args();
 
     let pwd = PathBuf::from(env::current_dir().expect("Failed to locate $PWD"));
@@ -42,10 +45,8 @@ fn main() {
                         None => panic!("Invalid luminance index: [{}, {}] {}%", x, y, avg),
                         Some(v) => v.to_owned(),
                     };
-
                     buf.push(ascii_char);
                 }
-
                 buf.push(10);
             }
 
@@ -101,6 +102,8 @@ fn main() {
                         .slice(ndarray::s![0, 0, ..])
                         .to_slice()
                         .expect(format!("Failed to parse RGB data at frame {}", t).as_str());
+
+                    println!("pixel at 0, 0: {}, {}, {}", rgb[0], rgb[1], rgb[2]);
                 } else {
                     break;
                 }
