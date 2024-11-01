@@ -6,12 +6,3 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
 image = "0.25.2"
-video-rs = { version = "0.9", features = ["ndarray"] }
-
-[target.x86_64-pc-windows-gnu]
-linker = "C:\\msys64\\mingw64\\bin\\gcc.exe"
-
-[env]
-LIBCLANG_PATH = "C:\\Program Files\\LLVM\\lib"
-FFMPEG_DIR = "C:\\Users\\T14\\scoop\\apps\\vcpkg\\current\\packages\\ffmpeg_x64-windows"
-PKG_CONFIG_PATH = "C:\\Users\\T14\\scoop\\persist\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig"

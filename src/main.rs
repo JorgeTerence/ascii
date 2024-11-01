@@ -5,17 +5,17 @@ use clap::Parser;
 use image::{ImageBuffer, ImageReader, Rgb};
 use img_proc::{read_image, sample};
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
-use util::{parse_args, Args, OutputType};
+use util::{parse_args, OutputType};
 
-use video_rs::decode::Decoder;
-use video_rs::Url;
+// use video_rs::decode::Decoder;
+// use video_rs::Url;
 
 const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
 
 fn main() {
-    let args = Args::parse();
-    println!("{}", args);
+    // let args = Args::parse();
+    // println!("{}", args);
     let (output_type, file_path) = parse_args();
 
     let pwd = PathBuf::from(env::current_dir().expect("Failed to locate $PWD"));
@@ -92,22 +92,7 @@ fn main() {
         }
 
         OutputType::Video => {
-            video_rs::init().unwrap();
-
-            let mut decoder = Decoder::new(file_path).expect("Failed decode input video");
-
-            for frame in decoder.decode_iter() {
-                if let Ok((t, frame)) = frame {
-                    let rgb = frame
-                        .slice(ndarray::s![0, 0, ..])
-                        .to_slice()
-                        .expect(format!("Failed to parse RGB data at frame {}", t).as_str());
-
-                    println!("pixel at 0, 0: {}, {}, {}", rgb[0], rgb[1], rgb[2]);
-                } else {
-                    break;
-                }
-            }
+            todo!("Implement video codec");
         }
     };
 }

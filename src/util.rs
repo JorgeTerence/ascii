@@ -2,6 +2,7 @@ use clap::Parser;
 use core::fmt;
 use std::path::PathBuf;
 
+#[derive(Debug)]
 pub enum OutputType {
     Text,
     Image,
@@ -18,21 +19,21 @@ impl fmt::Display for OutputType {
     }
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-pub struct Args {
-    input: Option<PathBuf>,
+// #[derive(Parser, Debug)]
+// #[command(version, about, long_about = None)]
+// pub struct Args {
+//     input: Option<PathBuf>,
 
-    #[arg(long, default_value = OutputType::Image)]
-    output: OutputType,
+//     #[arg(long, default_value = OutputType::Image)]
+//     output: OutputType,
 
-    #[arg(short, default_value = false)]
-    invert: bool,
-    #[arg(short, default_value = false)]
-    edge_detection: bool,
-    #[arg(short, default_value = false)]
-    display: bool,
-}
+//     #[arg(short, default_value = false)]
+//     invert: bool,
+//     #[arg(short, default_value = false)]
+//     edge_detection: bool,
+//     #[arg(short, default_value = false)]
+//     display: bool,
+// }
 
 pub fn parse_args() -> (OutputType, PathBuf) {
     let args = std::env::args().collect::<Vec<String>>();
