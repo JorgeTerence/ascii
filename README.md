@@ -4,24 +4,27 @@ Turn any image (_and soon video_) into ascii art.
 
 ![Vagabond ascii art](./.github/assets/musashi-ascii.png)
 
+See the galery.
+
 ## About
 
-Inspirations, people involved, TODOs
+This project is inspired by a video from the graphics programmer and content creater [Acerola](https://www.youtube.com/@Acerola_t), who made a [video on ascii art](https://youtu.be/gg40RWiaHRY?si=-8QZkvO8Thm2zgVa).
 
 ## Environment setup
 
+Check out [https://scoop.sh] for help installing `scoop`.
+
 ```sh
-sudo choco install llvm
-scoop install pkg-config vcpkg msys2
-vcpkg install ffmpeg
+scoop install 7zip
 
-$env:PKG_CONFIG_PATH = "~/persist/vcpkg/installed/x64-windows/lib/pkgconfig"
-$env:OUT_DIR = "./ffmpeg-sys-next-out"
-
-LIBCLANG_PATH = "C:\\Program Files\\LLVM\\lib"
-FFMPEG_DIR = "C:\\Users\\T14\\scoop\\apps\\vcpkg\\current\\packages\\ffmpeg_x64-windows"
-PKG_CONFIG_PATH = "C:\\Users\\T14\\scoop\\persist\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig"
-
+$VCINSTALLDIR = $(& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)
+Add-Content $env:GITHUB_ENV "LIBCLANG_PATH=${VCINSTALLDIR}\VC\Tools\LLVM\x64\bin`n"
+Invoke-WebRequest "${env:FFMPEG_DOWNLOAD_URL}" -OutFile ffmpeg-release-full-shared.7z
+7z x ffmpeg-release-full-shared.7z
+mkdir ffmpeg
+mv ffmpeg-*/* ffmpeg/
+Add-Content $env:GITHUB_ENV "FFMPEG_DIR=${pwd}\ffmpeg`n"
+Add-Content $env:GITHUB_PATH "${pwd}\ffmpeg\bin`n"
 ```
 
 ## Installation
@@ -31,5 +34,15 @@ PKG_CONFIG_PATH = "C:\\Users\\T14\\scoop\\persist\\vcpkg\\installed\\x64-windows
 ## How to use
 
 ```sh
-cargo run -- path/to/image --img
+ascii --img -ied path/to/image
 ```
+
+## Future plans
+
+[] Support for video formats
+[] Live video from camera stream
+[] Edge detection
+
+## Galery
+
+<!-- Photo by Kai-Chieh Chan: https://www.pexels.com/photo/red-and-brown-temple-569893/ -->
