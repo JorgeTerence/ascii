@@ -12,7 +12,7 @@ This project is inspired by a video from the graphics programmer and content cre
 
 ## Environment setup
 
-Check out [https://scoop.sh] for help installing `scoop`.
+Check out [https://scoop.sh](https://scoop.sh) for help installing `scoop`.
 
 ```sh
 scoop install 7zip
@@ -29,12 +29,14 @@ Add-Content $env:GITHUB_PATH "${pwd}\ffmpeg\bin`n"
 
 ## Installation
 
-> TODO: How to install binaries or compile.
+```sh
+cargo install https://github.com/JorgeTerence/ascii
+```
 
 ## How to use
 
 ```sh
-ascii --img -ied path/to/image
+ascii path/to/media
 ```
 
 ## Future plans

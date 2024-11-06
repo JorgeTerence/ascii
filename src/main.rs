@@ -7,9 +7,6 @@ use std::process::Command;
 use std::{env, io::Write, path::PathBuf};
 use util::{Args, OutputType};
 
-// use video_rs::decode::Decoder;
-// use video_rs::Url;
-
 const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
 
@@ -37,12 +34,17 @@ fn main() {
                 for x in (0..(width - (width % scale_x))).step_by(scale_x as usize) {
                     let avg = sample(&luminance, y, x, width, scale_y, scale_x);
 
-                    let index = avg as f32 / 32.0;
+                    let mut index = (avg as f32 / 32.0) as usize;
 
-                    let ascii_char = match TXT_TEXTURE.get(index as usize) {
-                        None => panic!("Invalid luminance index: [{}, {}] {}%", x, y, avg),
-                        Some(v) => v.to_owned(),
+                    if args.inverted {
+                        index = (7 - index) % 8;
                     };
+
+                    let ascii_char = TXT_TEXTURE
+                        .get(index)
+                        .expect(&format!("Invalid luminance index: [{}, {}]", x, y))
+                        .clone();
+
                     buf.push(ascii_char);
                 }
                 buf.push(10);
@@ -75,7 +77,11 @@ fn main() {
             for y in (0..(height - (height % TILE_SIZE))).step_by(TILE_SIZE as usize) {
                 for x in (0..(width - (width % TILE_SIZE))).step_by(TILE_SIZE as usize) {
                     let avg = sample(&luminance, y, x, width, TILE_SIZE, TILE_SIZE);
-                    let index = avg / 32;
+                    let mut index = avg / 32;
+
+                    if args.inverted {
+                        index = (7 - index) % 8;
+                    };
 
                     for i in 0..TILE_SIZE {
                         for j in 0..TILE_SIZE {
