@@ -1,7 +1,7 @@
 mod img_proc;
 mod util;
 
-use image::{ImageBuffer, ImageReader, Rgb};
+use image::{load_from_memory_with_format, GenericImageView, ImageBuffer, ImageFormat, Luma};
 use img_proc::{read_image, sample};
 use std::process::Command;
 use std::{env, io::Write, path::PathBuf};
@@ -9,6 +9,7 @@ use util::{Args, OutputType};
 
 const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
+static ATLAS: &'static [u8] = include_bytes!("../atlas.png");
 
 fn main() {
     let args = Args::parse();
@@ -53,10 +54,9 @@ fn main() {
             let mut file =
                 std::fs::File::create(output_path.clone()).expect("Faile to create file");
 
-            match file.write_all(&buf) {
-                Err(err) => panic!("Error writing file: {}", err),
-                Ok(_) => println!("File written successfully!"),
-            };
+            if let Err(err) = file.write_all(&buf) {
+                panic!("Error writing file: {}", err);
+            }
         }
 
         OutputType::Image => {
@@ -66,13 +66,9 @@ fn main() {
                     .expect("Failed to read input image data"),
             );
 
-            let atlas = ImageReader::open("atlas.png")
-                .expect("Failed to read atlas data")
-                .decode()
-                .expect("Failed to decode atlas data")
-                .to_luma8();
+            let atlas = load_from_memory_with_format(ATLAS, ImageFormat::Png).unwrap();
 
-            let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> = ImageBuffer::new(width, height);
+            let mut canvas: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new(width, height);
 
             for y in (0..(height - (height % TILE_SIZE))).step_by(TILE_SIZE as usize) {
                 for x in (0..(width - (width % TILE_SIZE))).step_by(TILE_SIZE as usize) {
@@ -88,7 +84,7 @@ fn main() {
                             let luma = (atlas.get_pixel(TILE_SIZE * index + j, i).0[0] as f32
                                 * (index as f32 / 10.0))
                                 as u8;
-                            canvas.put_pixel(x + j, y + i, Rgb([luma, luma, luma]));
+                            canvas.put_pixel(x + j, y + i, Luma([luma]));
                         }
                     }
                 }

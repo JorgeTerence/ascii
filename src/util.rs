@@ -41,7 +41,7 @@ pub struct Args {
     pub output_type: OutputType,
     pub display: bool,
     pub inverted: bool,
-    pub edge_detection: bool,
+    pub _edge_detection: bool,
 }
 
 impl Args {
@@ -88,7 +88,7 @@ impl Args {
                 .clone(),
             display: matches.get_one::<bool>("display").unwrap().clone(),
             inverted: matches.get_one::<bool>("inverted").unwrap().clone(),
-            edge_detection: matches.get_one::<bool>("edge_detection").unwrap().clone(),
+            _edge_detection: matches.get_one::<bool>("edge_detection").unwrap().clone(),
         }
     }
 }
