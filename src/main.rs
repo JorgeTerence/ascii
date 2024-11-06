@@ -1,11 +1,11 @@
 mod img_proc;
 mod util;
 
-use clap::Parser;
 use image::{ImageBuffer, ImageReader, Rgb};
 use img_proc::{read_image, sample};
-use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
-use util::{parse_args, OutputType};
+use std::process::Command;
+use std::{env, io::Write, path::PathBuf};
+use util::{Args, OutputType};
 
 // use video_rs::decode::Decoder;
 // use video_rs::Url;
@@ -14,23 +14,21 @@ const TXT_TEXTURE: &[u8] = " .;coPO?S#".as_bytes();
 const TILE_SIZE: u32 = 8;
 
 fn main() {
-    // let args = Args::parse();
-    // println!("{}", args);
-    let (output_type, file_path) = parse_args();
+    let args = Args::parse();
 
     let pwd = PathBuf::from(env::current_dir().expect("Failed to locate $PWD"));
     let output_path = format!(
         "{}-ascii.{}",
-        pwd.join(file_path.file_stem().expect("Failed to trim file stem"))
+        pwd.join(args.filepath.file_stem().expect("Failed to trim file stem"))
             .to_str()
             .expect("Failed to write path string"),
-        output_type
+        args.output_type
     );
 
-    match output_type {
+    match args.output_type {
         OutputType::Text => {
             let (luminance, width, height) =
-                read_image(file_path.to_str().expect("Failed to write file path"));
+                read_image(args.filepath.to_str().expect("Failed to write file path"));
 
             let (scale_x, scale_y) = (4, 8);
             let mut buf: Vec<u8> = vec![];
@@ -50,7 +48,8 @@ fn main() {
                 buf.push(10);
             }
 
-            let mut file = std::fs::File::create(output_path).expect("Faile to create file");
+            let mut file =
+                std::fs::File::create(output_path.clone()).expect("Faile to create file");
 
             match file.write_all(&buf) {
                 Err(err) => panic!("Error writing file: {}", err),
@@ -59,8 +58,11 @@ fn main() {
         }
 
         OutputType::Image => {
-            let (luminance, width, height) =
-                read_image(file_path.to_str().expect("Failed to read input image data"));
+            let (luminance, width, height) = read_image(
+                args.filepath
+                    .to_str()
+                    .expect("Failed to read input image data"),
+            );
 
             let atlas = ImageReader::open("atlas.png")
                 .expect("Failed to read atlas data")
@@ -87,7 +89,7 @@ fn main() {
             }
 
             canvas
-                .save_with_format(output_path, image::ImageFormat::Png)
+                .save_with_format(output_path.clone(), image::ImageFormat::Png)
                 .expect("Failed to save output image");
         }
 
@@ -95,4 +97,45 @@ fn main() {
             todo!("Implement video codec");
         }
     };
+
+    if args.display {
+        match std::env::consts::OS {
+            "windows" => {
+                _ = Command::new("cmd")
+                    .arg("/C")
+                    .arg("start")
+                    .arg(output_path)
+                    .output()
+                    .expect("Failed to open photos");
+            }
+            "mac" => {
+                match Command::new("open").arg(output_path).spawn() {
+                    Ok(_) => (),
+                    Err(err) => eprintln!("Failed to open file: {}", err),
+                };
+            }
+            "linux" => {
+                let programs = match args.output_type {
+                    OutputType::Text => ["gedit", "kate", "leafpad", "nano", "cat"],
+                    OutputType::Image => ["eog", "gthumb", "gwenview", "ristretto", "feh"],
+                    OutputType::Video => ["vlc", "mpv", "smplayer", "mplayer", "ffplay"],
+                };
+
+                for viewer in programs {
+                    if let Ok(o) = Command::new("which").arg(viewer).output() {
+                        if o.status.success() {
+                            _ = Command::new(viewer).arg(output_path.clone()).spawn();
+                            return;
+                        }
+                    }
+                }
+
+                println!("Failed to display {}", output_path);
+            }
+            _ => println!(
+                "Failed to find suitable application for opening the file. Output written to {}",
+                output_path
+            ),
+        };
+    }
 }
