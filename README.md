@@ -10,7 +10,7 @@ See the galery.
 
 This project is inspired by a video from the graphics programmer and content creater [Acerola](https://www.youtube.com/@Acerola_t), who made a [video on ascii art](https://youtu.be/gg40RWiaHRY?si=-8QZkvO8Thm2zgVa).
 
-## Environment setup
+<!-- ## Environment setup
 
 Check out [https://scoop.sh](https://scoop.sh) for help installing `scoop`.
 
@@ -25,7 +25,7 @@ mkdir ffmpeg
 mv ffmpeg-*/* ffmpeg/
 Add-Content $env:GITHUB_ENV "FFMPEG_DIR=${pwd}\ffmpeg`n"
 Add-Content $env:GITHUB_PATH "${pwd}\ffmpeg\bin`n"
-```
+``` -->
 
 ## Installation
 
@@ -41,9 +41,9 @@ ascii path/to/media
 
 ## Future plans
 
-[] Support for video formats
-[] Live video from camera stream
-[] Edge detection
+- [ ] Edge detection
+- [ ] Support for video formats
+- [ ] Live video from camera stream
 
 ## Galery
 
